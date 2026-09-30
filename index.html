@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGPA Calculator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 15px;
+        }
+        h1 {
+            font-size: 2.2rem; margin-bottom: 5px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #888; margin-bottom: 25px; font-size: 0.95rem; }
+        .card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 28px;
+            width: 100%; max-width: 700px;
+            backdrop-filter: blur(12px);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            font-size: 1.2rem; margin-bottom: 18px; color: #00d2ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; color: #bbb; }
+        select, input[type="number"], input[type="text"] {
+            width: 100%; padding: 10px 14px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08); color: #fff;
+            font-size: 0.95rem; margin-bottom: 14px;
+            outline: none; transition: border-color 0.2s;
+        }
+        select:focus, input:focus { border-color: #00d2ff; }
+        option { background: #1e1e2f; color: #fff; }
+        .row { display: flex; gap: 12px; align-items: flex-end; }
+        .row > div { flex: 1; }
+        .row .name-col { flex: 2; }
+        button {
+            padding: 11px 28px; border: none; border-radius: 8px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: #fff;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,210,255,0.3); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1); color: #ccc;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-small { padding: 7px 16px; font-size: 0.85rem; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .semester-block {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        }
+        .semester-block h3 { color: #7ec8e3; margin-bottom: 14px; font-size: 1.05rem; }
+        .subject-row { margin-bottom: 10px; }
+        .remove-btn {
+            background: none; border: none; color: #e74c3c;
+            cursor: pointer; font-size: 1.2rem; padding: 5px;
+            margin-bottom: 14px;
+        }
+        .remove-btn:hover { color: #ff6b6b; }
+        .sgpa-display {
+            margin-top: 10px; padding: 8px 14px;
+            background: rgba(0,210,255,0.1); border-radius: 8px;
+            font-weight: 600; color: #00d2ff; font-size: 0.95rem;
+        }
+
+        /* Results */
+        .results-card { border: 1px solid rgba(0,210,255,0.3); }
+        table {
+            width: 100%; border-collapse: collapse; margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        th {
+            text-align: left; padding: 10px 12px;
+            background: rgba(0,210,255,0.1); color: #00d2ff;
+            border-bottom: 2px solid rgba(0,210,255,0.2);
+        }
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        tr.sgpa-row td {
+            font-weight: 700; color: #7ec8e3;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0,210,255,0.04);
+        }
+        .stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-top: 18px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.05); border-radius: 10px;
+            padding: 16px; text-align: center;
+        }
+        .stat-box .value {
+            font-size: 1.8rem; font-weight: 700;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-box .label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+
+        /* Target Calculator */
+        .target-result {
+            margin-top: 14px; padding: 14px;
+            border-radius: 10px; font-weight: 600;
+            font-size: 1rem; text-align: center;
+        }
+        .target-ok { background: rgba(46,204,113,0.15); color: #2ecc71; }
+        .target-warn { background: rgba(231,76,60,0.15); color: #e74c3c; }
+        .target-easy { background: rgba(0,210,255,0.15); color: #00d2ff; }
+
+        .hidden { display: none; }
+        .grade-hint { font-size: 0.75rem; color: #666; margin-bottom: 14px; margin-top: -10px; }
+
+        @media (max-width: 600px) {
+            .row { flex-direction: column; gap: 0; }
+            .stat-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 CGPA Calculator</h1>
+    <p class="subtitle">Calculate your Semester & Cumulative GPA instantly</p>
+
+    <!-- Step 1: Scale Selection -->
+    <div class="card" id="scaleCard">
+        <h2>① Choose Grading Scale</h2>
+        <label for="scale">Grading Scale</label>
+        <select id="scale" onchange="updateGradeHints()">
+            <option value="10">10-point (Indian Universities)</option>
+            <option value="4">4-point (US / International)</option>
+        </select>
+        <p class="grade-hint" id="gradeHint">Valid grades: O, A+, A, B+, B, C, P, F &nbsp;or&nbsp; numeric (0–10)</p>
+    </div>
+
+    <!-- Step 2: Semesters -->
+    <div class="card" id="semCard">
+        <h2>② Enter Semester Data</h2>
+        <div id="semesters"></div>
+        <div class="btn-group">
+            <button class="btn-secondary" onclick="addSemester()">+ Add Semester</button>
+            <button class="btn-primary" onclick="calculate()">Calculate CGPA</button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card results-card hidden" id="resultsCard">
+        <h2>③ Results</h2>
+        <div id="resultsContent"></div>
+    </div>
+
+    <!-- Target Calculator -->
+    <div class="card hidden" id="targetCard">
+        <h2>🎯 Target CGPA Calculator</h2>
+        <p style="color:#888;font-size:0.9rem;margin-bottom:14px;">What SGPA do you need next semester to reach your target?</p>
+        <div class="row">
+            <div>
+                <label for="targetCGPA">Target CGPA</label>
+                <input type="number" id="targetCGPA" step="0.01" min="0">
+            </div>
+            <div>
+                <label for="nextCredits">Next Semester Credits</label>
+                <input type="number" id="nextCredits" step="1" min="1" value="20">
+            </div>
+        </div>
+        <button class="btn-primary" onclick="calcTarget()">Calculate Needed SGPA</button>
+        <div id="targetResult"></div>
+    </div>
+
+    <script>
+        // ── Grade Maps ──
+        const GRADE_MAP_10 = { "O":10, "A+":9, "A":8, "B+":7, "B":6, "C":5, "P":4, "F":0 };
+        const GRADE_MAP_4  = { "A+":4, "A":4, "A-":3.7, "B+":3.3, "B":3, "B-":2.7,
+                               "C+":2.3, "C":2, "C-":1.7, "D+":1.3, "D":1, "F":0 };
+
+        let semesterCount = 0;
+        let lastCGPA = 0, lastTotalCredits = 0;
+
+        function getScale() { return parseFloat(document.getElementById('scale').value); }
+        function getGradeMap() { return getScale() === 10 ? GRADE_MAP_10 : GRADE_MAP_4; }
+
+        function updateGradeHints() {
+            const hint = document.getElementById('gradeHint');
+            const s = getScale();
+            if (s === 10) hint.textContent = "Valid grades: O, A+, A, B+, B, C, P, F  or  numeric (0–10)";
+            else hint.textContent = "Valid grades: A+, A, A-, B+, B, B-, C+, C, C-, D+, D, F  or  numeric (0–4)";
+            // clear existing grades in dropdowns
+            document.querySelectorAll('.grade-select').forEach(sel => populateGradeSelect(sel));
+        }
+
+        function populateGradeSelect(sel) {
+            const map = getGradeMap();
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">-- Select --</option>';
+            for (const [letter, gp] of Object.entries(map)) {
+                const opt = document.createElement('option');
+                opt.value = gp; opt.textContent = `${letter} (${gp})`;
+                sel.appendChild(opt);
+            }
+            // numeric option
+            const opt = document.createElement('option');
+            opt.value = "custom"; opt.textContent = "Enter numeric...";
+            sel.appendChild(opt);
+            if (prev) sel.value = prev;
+        }
+
+        function addSemester() {
+            semesterCount++;
+            const div = document.createElement('div');
+            div.className = 'semester-block';
+            div.id = `sem-${semesterCount}`;
+            div.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3>Semester ${semesterCount}</h3>
+                    <button class="remove-btn" onclick="removeSemester(${semesterCount})" title="Remove">✕</button>
+                </div>
+                <div id="subjects-${semesterCount}"></div>
+                <button class="btn-secondary btn-small" onclick="addSubject(${semesterCount})">+ Add Subject</button>
+                <div class="sgpa-display hidden" id="sgpa-${semesterCount}"></div>
+            `;
+            document.getElementById('semesters').appendChild(div);
+            addSubject(semesterCount);
+            addSubject(semesterCount);
+            addSubject(semesterCount);
+        }
+
+        function removeSemester(id) {
+            const el = document.getElementById(`sem-${id}`);
+            if (el) el.remove();
+        }
+
+        let subjectId = 0;
+        function addSubject(semId) {
+            subjectId++;
+            const div = document.createElement('div');
+            div.className = 'subject-row';
+            div.id = `subj-${subjectId}`;
+            div.innerHTML = `
+                <div class="row">
+                    <div class="name-col">
+                        <input type="text" placeholder="Subject name" class="subj-name">
+                    </div>
+                    <div>
+                        <input type="number" placeholder="Credits" min="0.5" step="0.5" class="subj-credits" value="3">
+                    </div>
+                    <div>
+                        <select class="grade-select subj-grade" onchange="handleGradeChange(this, ${subjectId})"></select>
+                        <input type="number" class="custom-gp hidden" id="customgp-${subjectId}"
+                               placeholder="Grade point" min="0" step="0.1">
+                    </div>
+                    <div style="flex:0 0 30px;">
+                        <button class="remove-btn" onclick="document.getElementById('subj-${subjectId}').remove()" title="Remove">✕</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`subjects-${semId}`).appendChild(div);
+            populateGradeSelect(div.querySelector('.grade-select'));
+        }
+
+        function handleGradeChange(sel, sid) {
+            const custom = document.getElementById(`customgp-${sid}`);
+            if (sel.value === 'custom') {
+                custom.classList.remove('hidden');
+                custom.max = getScale();
+                custom.focus();
+            } else {
+                custom.classList.add('hidden');
+            }
+        }
+
+        function calculate() {
+            const semBlocks = document.querySelectorAll('.semester-block');
+            if (semBlocks.length === 0) { alert('Add at least one semester!'); return; }
+
+            let allData = [];
+            let totalCredits = 0, totalWeighted = 0;
+            let valid = true;
+
+            semBlocks.forEach((block, idx) => {
+                const subjects = [];
+                const rows = block.querySelectorAll('.subject-row');
+                let semCredits = 0, semWeighted = 0;
+
+                rows.forEach(row => {
+                    const name = row.querySelector('.subj-name').value.trim() || `Subject`;
+                    const credits = parseFloat(row.querySelector('.subj-credits').value);
+                    const gradeSel = row.querySelector('.subj-grade');
+                    let gp;
+                    if (gradeSel.value === 'custom') {
+                        gp = parseFloat(row.querySelector('.custom-gp').value);
+                    } else {
+                        gp = parseFloat(gradeSel.value);
+                    }
+
+                    if (isNaN(credits) || credits <= 0) {
+                        alert(`Invalid credits for "${name}". Must be > 0.`);
+                        valid = false; return;
+                    }
+                    if (isNaN(gp) || gp < 0 || gp > getScale()) {
+                        alert(`Invalid grade for "${name}". Must be 0–${getScale()}.`);
+                        valid = false; return;
+                    }
+
+                    subjects.push({ name, credits, gp });
+                    semCredits += credits;
+                    semWeighted += credits * gp;
+                });
+
+                if (!valid) return;
+                const sgpa = semCredits > 0 ? semWeighted / semCredits : 0;
+                allData.push({ semNum: idx + 1, subjects, sgpa, semCredits });
+                totalCredits += semCredits;
+                totalWeighted += semWeighted;
+
+                // Show per-semester SGPA
+                const sgpaEl = block.querySelector('.sgpa-display');
+                sgpaEl.textContent = `SGPA: ${sgpa.toFixed(2)}`;
+                sgpaEl.classList.remove('hidden');
+            });
+
+            if (!valid) return;
+
+            const cgpa = totalCredits > 0 ? totalWeighted / totalCredits : 0;
+            lastCGPA = cgpa;
+            lastTotalCredits = totalCredits;
+            const scaleMax = getScale();
+
+            // Build results
+            let html = '<table><thead><tr><th>Sem</th><th>Subject</th><th>Credits</th><th>Grade Pt</th></tr></thead><tbody>';
+            allData.forEach(sem => {
+                sem.subjects.forEach(s => {
+                    html += `<tr><td>${sem.semNum}</td><td>${s.name}</td><td>${s.credits.toFixed(1)}</td><td>${s.gp.toFixed(2)}</td></tr>`;
+                });
+                html += `<tr class="sgpa-row"><td></td><td>SGPA ➤</td><td>${sem.semCredits.toFixed(1)}</td><td>${sem.sgpa.toFixed(2)}</td></tr>`;
+            });
+            html += '</tbody></table>';
+
+            let pct, pctLabel;
+            if (scaleMax === 10) {
+                pct = (cgpa * 9.5).toFixed(1);
+                pctLabel = 'CGPA × 9.5';
+            } else {
+                pct = ((cgpa / 4) * 100).toFixed(1);
+                pctLabel = 'GPA/4 × 100';
+            }
+
+            html += `
+                <div class="stat-grid">
+                    <div class="stat-box"><div class="value">${cgpa.toFixed(2)}</div><div class="label">CGPA / ${scaleMax.toFixed(0)}</div></div>
+                    <div class="stat-box"><div class="value">${pct}%</div><div class="label">Approx. Percentage (${pctLabel})</div></div>
+                    <div class="stat-box"><div class="value">${totalCredits.toFixed(0)}</div><div class="label">Total Credits</div></div>
+                    <div class="stat-box"><div class="value">${allData.length}</div><div class="label">Semesters</div></div>
+                </div>
+            `;
+
+            document.getElementById('resultsContent').innerHTML = html;
+            document.getElementById('resultsCard').classList.remove('hidden');
+            document.getElementById('targetCard').classList.remove('hidden');
+            document.getElementById('targetCGPA').max = scaleMax;
+            document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calcTarget() {
+            const target = parseFloat(document.getElementById('targetCGPA').value);
+            const nextCr = parseFloat(document.getElementById('nextCredits').value);
+            const scaleMax = getScale();
+            const resDiv = document.getElementById('targetResult');
+
+            if (isNaN(target) || target < 0 || target > scaleMax) {
+                resDiv.innerHTML = `<div class="target-result target-warn">Enter a valid target (0–${scaleMax})</div>`;
+                return;
+            }
+            if (isNaN(nextCr) || nextCr <= 0) {
+                resDiv.innerHTML = `<div class="target-result target-warn">Enter valid credits (> 0)</div>`;
+                return;
+            }
+
+            const needed = ((target * (lastTotalCredits + nextCr)) - (lastCGPA * lastTotalCredits)) / nextCr;
+
+            if (needed > scaleMax) {
+                resDiv.innerHTML = `<div class="target-result target-warn">
+                    ⚠️ You'd need an SGPA of <strong>${needed.toFixed(2)}</strong>, which exceeds the max (${scaleMax}).<br>
+                    This target is <strong>not achievable</strong> in one semester.
+                </div>`;
+            } else if (needed < 0) {
+                resDiv.innerHTML = `<div class="target-result target-easy">
+                    🎉 You already exceed your target! Any SGPA ≥ 0 will work.
+                </div>`;
+            } else {
+                resDiv.innerHTML = `<div class="target-result target-ok">
+                    ✅ You need an SGPA of at least <strong>${needed.toFixed(2)}</strong> next semester
+                    to reach a CGPA of <strong>${target.toFixed(2)}</strong>.
+                </div>`;
+            }
+        }
+
+        // Start with one semester
+        addSemester();
+    </script>
+</body>
+</html>
